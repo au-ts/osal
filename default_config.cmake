@@ -60,7 +60,7 @@ set(OSAL_CONFIG_BUGCHECK_DISABLE                FALSE)
 # fatal and will trigger an abort().  On many platforms this will
 # generate an abnormal application exit with a core file for debugging.
 #
-set(OSAL_CONFIG_BUGCHECK_STRICT                  FALSE)
+set(OSAL_CONFIG_BUGCHECK_STRICT                  TRUE)
 
 
 ##############################################################
@@ -81,7 +81,7 @@ set(OSAL_CONFIG_BUGCHECK_STRICT                  FALSE)
 # IP stack available, or to save code space if the application does
 # not use network resources.
 #
-set(OSAL_CONFIG_INCLUDE_NETWORK                 TRUE
+set(OSAL_CONFIG_INCLUDE_NETWORK                 FALSE
     CACHE BOOL "Whether to include the Network API"
 )
 
@@ -98,7 +98,7 @@ set(OSAL_CONFIG_INCLUDE_NETWORK                 TRUE
 # For deployments which are always statically linked, this may be set
 # FALSE for a smaller library size and reduced linking requirements.
 #
-set(OSAL_CONFIG_INCLUDE_DYNAMIC_LOADER          TRUE
+set(OSAL_CONFIG_INCLUDE_DYNAMIC_LOADER          FALSE
     CACHE BOOL "Whether to include the Dynamic Loader feature"
 )
 
@@ -176,7 +176,7 @@ set(OSAL_CONFIG_DEBUG_PERMISSIVE_MODE           FALSE
 # If set TRUE, all the "OS_DEBUG" statements will be compiled in and displayed
 # on the debug console.  The statements may still be suppressed at runtime.
 #
-set(OSAL_CONFIG_DEBUG_PRINTF                    FALSE
+set(OSAL_CONFIG_DEBUG_PRINTF                    TRUE
     CACHE BOOL "Controls inclusion of OS_DEBUG statements in the code"
 )
 
@@ -202,7 +202,7 @@ set(OSAL_CONFIG_DEBUG_PRINTF                    FALSE
 # can become decoupled from the event/task where it actually occurred, or
 # messages might appear in a different order than they originally occurred.
 #
-set(OSAL_CONFIG_CONSOLE_ASYNC                   TRUE
+set(OSAL_CONFIG_CONSOLE_ASYNC                   FALSE
     CACHE BOOL "Controls spawning of a separate utility task for OS_printf"
 )
 
