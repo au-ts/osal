@@ -1,0 +1,8 @@
+#ifndef OS_IMPL_GETTIME_H
+#define OS_IMPL_GETTIME_H
+
+#include <time.h>
+
+#define OSAL_GETTIME_SOURCE_CLOCK CLOCK_REALTIME
+
+#endif /* OS_IMPL_GETTIME_H */
