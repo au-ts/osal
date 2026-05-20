@@ -1,24 +1,20 @@
 #include <lions/posix/posix.h>
-
 #include <sddf/timer/config.h>
 #include <sddf/timer/client.h>
 #include <sddf/timer/protocol.h>
-
 #include <lions/fs/config.h>
 #include <lions/fs/helpers.h>
 #include <lions/fs/protocol.h>
-
 #include <sddf/network/config.h>
 #include <sddf/network/queue.h>
 #include <sddf/network/lib_sddf_lwip.h>
-
 #include <sddf/serial/config.h>
 #include <sddf/serial/queue.h>
-
 #include <sel4/syscalls.h>
-
 #include <libmicrokitco.h>
 #include <microkit.h>
+#include <sys/auxv.h>
+#include <stdarg.h>
 
 #include "bsp-impl.h"
 
@@ -53,18 +49,24 @@ static void OS_BSP_DHCP_Success(char *ip)
 
 long sys_exit(va_list ap)
 {
-    microkit_dbg_puts("sys_exit():cFS will now intentionally crash\n\n");
-    __builtin_trap();
-    return 1;
+    BSP_DEBUG("cFS will now halt\n");
+
+    while (true) {
+        seL4_DebugHalt();
+    }
 }
 
 long sys_exit_group(va_list ap)
 {
-    microkit_dbg_puts("sys_exit_group():calling sys_exit\n");
     return sys_exit(ap);
 }
 
-long sys_futex(va_list ap)
+long sys_mq_open(va_list ap)
+{
+    return 0;
+}
+
+long sys_mq_unlink(va_list ap)
 {
     return 0;
 }
@@ -88,10 +90,11 @@ void OS_BSP_Initialize(void)
     // LionsOS does not define the exit or exit_group syscalls
     // so we need to provide stub implementations or the system
     // will go into an infinite loop
-    libc_init(&socket_config);
     libc_define_syscall(__NR_exit, sys_exit);
     libc_define_syscall(__NR_exit_group, sys_exit_group);
-    libc_define_syscall(__NR_futex, sys_futex);
+    libc_define_syscall(__NR_mq_open, sys_mq_open);
+    libc_define_syscall(__NR_mq_unlink, sys_mq_unlink);
+    libc_init(&socket_config);
 
     BSP_DEBUG("fs_enabled: %s\n", fs_enabled ? "true" : "false");
     BSP_DEBUG("net_enabled: %s\n", net_enabled ? "true" : "false");
@@ -197,8 +200,6 @@ void OS_BSP_Handle_Notifications(microkit_channel channel)
     }
     else if (channel == timer_config.driver_id)
     {
-        BSP_DEBUG("Received notification from timer driver\n");
-
         if (net_enabled) {
             sddf_lwip_process_rx();
             sddf_lwip_process_timeout();
@@ -217,10 +218,6 @@ void OS_BSP_Handle_Notifications(microkit_channel channel)
     {
         BSP_DEBUG("Received notification from filesystem server\n");
         fs_process_completions(NULL);
-    }
-    else
-    {
-        BSP_DEBUG("Uh oh, who is channel %d?\n", channel);
     }
 
     if (net_enabled) {

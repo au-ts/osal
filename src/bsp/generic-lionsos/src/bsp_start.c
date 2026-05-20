@@ -1,7 +1,10 @@
 #include <sel4/sel4.h>
 #include <microkit.h>
 #include <libmicrokitco.h>
+#include <sddf/timer/config.h>
 
+#include "libmicrokitco_opts.h"
+#include "os-impl-binsem.h"
 #include "bsp_libc.h"
 #include "bsp-impl.h"
 
@@ -36,6 +39,12 @@ void init(void)
 void notified(microkit_channel channel)
 {
     OS_BSP_Handle_Notifications(channel);
+
+    if (channel == timer_config.driver_id)
+    {
+        OS_BinSemTimedWait_Callback();
+    }
+
     microkit_cothread_recv_ntfn(channel);
 }
 
