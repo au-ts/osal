@@ -11,9 +11,10 @@ add_library(osal_generic-lionsos_impl OBJECT
 )
 
 target_include_directories(osal_generic-lionsos_impl PRIVATE
-    ${LIONSOS}/dep/libmicrokitco
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/lwip_include
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    "${LIONSOS}/dep/libmicrokitco"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/lwip_include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../os/lionsos/inc"
 )
 
 target_compile_options(osal_generic-lionsos_impl PRIVATE
@@ -22,14 +23,9 @@ target_compile_options(osal_generic-lionsos_impl PRIVATE
     -Wno-unused-function
 )
 
-set(LIONSOS_LIBC_TCP_OBJECT "${CMAKE_CURRENT_BINARY_DIR}/../../../../../tcp.o")
-cmake_path(ABSOLUTE_PATH LIONSOS_LIBC_TCP_OBJECT NORMALIZE OUTPUT_VARIABLE LIONSOS_LIBC_TCP_OBJECT)
-set(MICROKIT_COROUTINE_CLIENT_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/../../../../../libmicrokitco_client.a")
-cmake_path(ABSOLUTE_PATH MICROKIT_COROUTINE_CLIENT_LIBRARY NORMALIZE OUTPUT_VARIABLE MICROKIT_COROUTINE_CLIENT_LIBRARY)
-
 target_link_libraries(osal_public_api INTERFACE
-    "${LIONSOS_LIBC_TCP_OBJECT}"
-    "${MICROKIT_COROUTINE_CLIENT_LIBRARY}"
+    "${BUILD_DIR}/tcp.o"
+    "${BUILD_DIR}/libmicrokitco_cfs.a"
 )
 
 # This BSP only works with "lionsos" OS layer
