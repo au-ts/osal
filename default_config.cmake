@@ -229,7 +229,7 @@ set(OSAL_CONFIG_CONSOLE_ASYNC                   FALSE
 # any use of a readers-writer lock should also create an implementation using solely 
 # mutexes.
 #
-set(OSAL_CONFIG_RWLOCK                          TRUE
+set(OSAL_CONFIG_RWLOCK                          FALSE
     CACHE BOOL "Controls the inclusion of readers-writer lock objects in the code"
 )
 
