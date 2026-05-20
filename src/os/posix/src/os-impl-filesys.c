@@ -167,7 +167,7 @@ int32 OS_FileSysStartVolume_Impl(const OS_object_token_t *token)
         if (tmpdir == NULL)
         {
             /* OS provides no place to put the volume */
-            OS_DEBUG("No storage location for volatile volumes");
+            OS_DEBUG("No storage location for volatile volumes\n");
             return OS_FS_ERR_DRIVE_NOT_CREATED;
         }
 
@@ -177,8 +177,12 @@ int32 OS_FileSysStartVolume_Impl(const OS_object_token_t *token)
          * always be null terminated.  To get around this, calculate the
          * string size and check that it is within the expected size, and do the
          * append of volume_name explicitly.
+         *
+         * Use %s/osal- instead of %s/osal: as some FAT drivers may interpret colon
+         * as a device identifier.
          */
-        mplen = snprintf(local->system_mountpt, sizeof(local->system_mountpt), "%s/osal:", tmpdir);
+        mplen = snprintf(local->system_mountpt, sizeof(local->system_mountpt), "%s/osal-", tmpdir);
+
         if (mplen < sizeof(local->system_mountpt))
         {
             vollen = OS_strnlen(local->volume_name, sizeof(local->volume_name));
