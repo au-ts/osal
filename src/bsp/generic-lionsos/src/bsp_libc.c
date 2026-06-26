@@ -18,6 +18,8 @@
 
 #include "bsp-impl.h"
 
+extern libc_socket_config_t socket_config;
+
 __attribute__((__section__(".timer_client_config"))) timer_client_config_t timer_config;
 __attribute__((__section__(".serial_client_config"))) serial_client_config_t serial_config;
 __attribute__((__section__(".net_client_config"))) net_client_config_t net_config;
@@ -28,18 +30,18 @@ fs_queue_t *fs_command_queue;
 fs_queue_t *fs_completion_queue;
 char *fs_share;
 
-extern libc_socket_config_t socket_config;
-
 net_queue_handle_t net_tx_handle;
 net_queue_handle_t net_rx_handle;
 
 serial_queue_handle_t serial_tx_queue_handle;
 serial_queue_handle_t serial_rx_queue_handle;
 
-bool fs_enabled;
-bool serial_rx_enabled;
-bool net_enabled;
-bool net_dhcp_acked;
+static bool fs_enabled;
+static bool serial_rx_enabled;
+static bool net_enabled;
+static bool net_dhcp_acked;
+
+static char morecore_area[0x100000 /* 1 MiB */];
 
 static void OS_BSP_DHCP_Success(char *ip)
 {
@@ -47,28 +49,21 @@ static void OS_BSP_DHCP_Success(char *ip)
     net_dhcp_acked = true;
 }
 
-long sys_exit(va_list ap)
+static long sys_exit(va_list ap)
 {
     BSP_DEBUG("cFS will now halt\n");
 
-    while (true) {
+    while (true)
+    {
         seL4_DebugHalt();
     }
+
+    return -1;
 }
 
-long sys_exit_group(va_list ap)
+static long sys_exit_group(va_list ap)
 {
     return sys_exit(ap);
-}
-
-long sys_mq_open(va_list ap)
-{
-    return 0;
-}
-
-long sys_mq_unlink(va_list ap)
-{
-    return 0;
 }
 
 void OS_BSP_Initialize(void)
@@ -92,9 +87,7 @@ void OS_BSP_Initialize(void)
     // will go into an infinite loop
     libc_define_syscall(__NR_exit, sys_exit);
     libc_define_syscall(__NR_exit_group, sys_exit_group);
-    libc_define_syscall(__NR_mq_open, sys_mq_open);
-    libc_define_syscall(__NR_mq_unlink, sys_mq_unlink);
-    libc_init(&socket_config);
+    libc_init(&socket_config, morecore_area, sizeof(morecore_area));
 
     BSP_DEBUG("fs_enabled: %s\n", fs_enabled ? "true" : "false");
     BSP_DEBUG("net_enabled: %s\n", net_enabled ? "true" : "false");
@@ -216,7 +209,6 @@ void OS_BSP_Handle_Notifications(microkit_channel channel)
     }
     else if (channel == fs_config.server.id)
     {
-        BSP_DEBUG("Received notification from filesystem server\n");
         fs_process_completions(NULL);
     }
 
