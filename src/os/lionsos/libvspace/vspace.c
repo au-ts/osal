@@ -253,7 +253,7 @@ uint32_t libvspace_write_bytes(uint16_t client, uintptr_t start_addr, char *byte
         } else {
             uint32_t ret = libvspace_write_page(client, start_addr, bytes, nbytes);
             assert(!ret);
-            return 0;
+            return nbytes;
         }
     }
 
