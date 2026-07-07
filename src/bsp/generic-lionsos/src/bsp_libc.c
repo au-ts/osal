@@ -66,6 +66,31 @@ static long sys_exit_group(va_list ap)
     return sys_exit(ap);
 }
 
+static long sys_pselect6(va_list ap)
+{
+    int n = va_arg(ap, int);
+    fd_set *rfds = va_arg(ap, void*);
+    fd_set *wfds = va_arg(ap, void*);
+    fd_set *efds = va_arg(ap, void*);
+    struct timeval *tv = va_arg(ap, void*);
+    sigset_t *sm = va_arg(ap, void*);
+
+    (void) tv;
+    (void) sm;
+
+    long count = 0;
+
+    for (int i = 0; i < n; i++)
+    {
+        count += (rfds != NULL && FD_ISSET(i, rfds));
+        count += (wfds != NULL && FD_ISSET(i, wfds));
+        count += (efds != NULL && FD_ISSET(i, efds));
+    }
+
+    /* pselect6(2) is expected to return the number of ready FDs */
+    return count;
+}
+
 void OS_BSP_Initialize(void)
 {
     assert(serial_config_check_magic(&serial_config));
@@ -87,6 +112,7 @@ void OS_BSP_Initialize(void)
     // will go into an infinite loop
     libc_define_syscall(__NR_exit, sys_exit);
     libc_define_syscall(__NR_exit_group, sys_exit_group);
+    libc_define_syscall(__NR_pselect6, sys_pselect6);
     libc_init(&socket_config, morecore_area, sizeof(morecore_area));
 
     BSP_DEBUG("fs_enabled: %s\n", fs_enabled ? "true" : "false");
