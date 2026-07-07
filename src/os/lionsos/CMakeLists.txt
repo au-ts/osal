@@ -44,6 +44,10 @@ set(LIONSOS_IMPL_SRCLIST
     src/os-impl-tasks.c
     src/os-impl-mutex.c
     src/os-impl-timebase.c
+    libelf/elf.c
+    libelf/elf32.c
+    libelf/elf64.c
+    libvspace/vspace.c
 )
 
 if (OSAL_CONFIG_INCLUDE_SHELL)
@@ -93,6 +97,8 @@ add_library(osal_lionsos_impl OBJECT
 
 target_include_directories(osal_lionsos_impl PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/libelf
+    ${CMAKE_CURRENT_SOURCE_DIR}/libvspace
     ${CMAKE_CURRENT_SOURCE_DIR}/../posix/inc
     ${CMAKE_CURRENT_SOURCE_DIR}/../../bsp/generic-lionsos/src
     "${LIONSOS}/dep/libmicrokitco"
