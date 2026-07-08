@@ -37,7 +37,7 @@ int32 OS_API_Impl_Init(osal_objtype_t idtype)
             return_code = OS_LionsOS_MutexAPI_Impl_Init();
             break;
         case OS_OBJECT_TYPE_OS_MODULE:
-            return_code = OS_Posix_ModuleAPI_Impl_Init();
+            return_code = OS_LionsOS_ModuleAPI_Impl_Init();
             break;
         case OS_OBJECT_TYPE_OS_TIMEBASE:
             return_code = OS_LionsOS_TimeBaseAPI_Impl_Init();

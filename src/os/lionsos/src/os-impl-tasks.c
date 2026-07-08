@@ -1,10 +1,11 @@
-#define _GNU_SOURCE
 #include <unistd.h>
 #include <stdio.h>
 
 #include "libmicrokitco.h"
+#include "os-impl-loader.h"
 #include "os-shared-globaldefs.h"
 #include "os-shared-task.h"
+#include "os-shared-module.h"
 #include "os-shared-idmap.h"
 #include "os-impl-tasks.h"
 #include "osapi-error.h"
@@ -28,9 +29,31 @@ int32 OS_TaskCreate_Impl(const OS_object_token_t *token, uint32 flags)
 {
     OS_impl_task_internal_record_t *impl = OS_OBJECT_TABLE_GET(OS_impl_task_table, *token);
     OS_task_internal_record_t *task = OS_OBJECT_TABLE_GET(OS_task_table, *token);
-    int32 return_code;
 
-    if (task->stack_size > COTHREAD_STACK_SIZE)
+    int32 return_code = OS_ERROR;
+
+    /* Tasks prefixed with "PD_" are assumed to belong to a separate protection domain
+     * If that's the case, OS_TaskCreate will just start the PD at its defined entrypoint */
+    if (strncmp(task->task_name, "PD_", 3) == 0)
+    {
+        for (int i = 0; i < OS_MAX_MODULES; i++)
+        {
+            if (strcmp(task->task_name, OS_module_table[i].module_name) == 0)
+            {
+                uintptr_t entrypoint = elf_getEntryPoint(&OS_impl_module_table[i].elf);
+                microkit_pd_restart(OS_impl_module_table[i].pd, entrypoint);
+
+                impl->pd = OS_impl_module_table[i].pd;
+                impl->osal_id = OS_ObjectIdFromToken(token);
+
+                return_code = OS_SUCCESS;
+                break;
+            }
+        }
+    }
+
+    /* Assume all other tasks are cothreads inside cFS */
+    else if (task->stack_size > COTHREAD_STACK_SIZE)
     {
         return_code = OS_ERR_OPERATION_NOT_SUPPORTED;
     }
@@ -49,12 +72,27 @@ int32 OS_TaskCreate_Impl(const OS_object_token_t *token, uint32 flags)
 
 int32 OS_TaskDelete_Impl(const OS_object_token_t *token)
 {
-    return OS_ERR_NOT_IMPLEMENTED;
+    OS_impl_task_internal_record_t *impl = OS_OBJECT_TABLE_GET(OS_impl_task_table, *token);
+    OS_task_internal_record_t *task = OS_OBJECT_TABLE_GET(OS_task_table, *token);
+
+    if (strncmp(task->task_name, "PD_", 3) == 0)
+    {
+        microkit_pd_stop(impl->pd);
+    }
+    else
+    {
+        OS_DEBUG("Ignoring task deletion request for cothread with OSAL task ID %u\n", impl->osal_id);
+    }
+
+    return OS_SUCCESS;
 }
 
 int32 OS_TaskDetach_Impl(const OS_object_token_t *token)
 {
-    return OS_ERR_NOT_IMPLEMENTED;
+    /* Detaching a task means asking the operating system
+     * to automatically clean up its resources once the task
+     * finishes, without waiting for a task to join the finished task */
+    return OS_SUCCESS;
 }
 
 void OS_TaskExit_Impl()
@@ -120,5 +158,6 @@ bool OS_TaskIdMatchSystemData_Impl(void *ref, const OS_object_token_t *token, co
 
 int32 OS_Posix_InternalTaskCreate_Impl(void *pthr, osal_priority_t priority, osal_stackptr_t stackptr,
                                        size_t stacksz, void * entry, void *entry_arg) {
+    /* Needed in os-impl-console.c */
     return OS_SUCCESS;
 }

@@ -8,8 +8,6 @@
 
 # The basic set of POSIX files which are always built
 set(POSIX_BASE_SRCLIST
-    # ../posix/src/os-impl-binsem.c
-    # ../posix/src/os-impl-common.c
     ../posix/src/os-impl-console.c
     ../posix/src/os-impl-condvar.c
     ../posix/src/os-impl-countsem.c
@@ -19,10 +17,7 @@ set(POSIX_BASE_SRCLIST
     ../posix/src/os-impl-filesys.c
     ../posix/src/os-impl-heap.c
     ../posix/src/os-impl-idmap.c
-    # ../posix/src/os-impl-mutex.c
     ../posix/src/os-impl-queues.c
-    # ../posix/src/os-impl-tasks.c
-    # ../posix/src/os-impl-timebase.c
 )
 
 # Use portable blocks for basic I/O
@@ -41,6 +36,7 @@ set(POSIX_IMPL_SRCLIST
 set(LIONSOS_IMPL_SRCLIST
     src/os-impl-binsem.c
     src/os-impl-common.c
+    src/os-impl-loader.c
     src/os-impl-tasks.c
     src/os-impl-mutex.c
     src/os-impl-timebase.c
@@ -70,12 +66,6 @@ endif ()
 # then build the module loader
 if (OSAL_CONFIG_INCLUDE_DYNAMIC_LOADER)
     message (FATAL_ERROR "LionsOS OSAL implementation does not support dynamic loading")
-else ()
-    list(APPEND POSIX_IMPL_SRCLIST
-        ../posix/src/os-impl-no-module.c
-        ../portable/os-impl-no-loader.c
-        ../portable/os-impl-no-symtab.c
-    )
 endif ()
 
 if (OSAL_CONFIG_INCLUDE_NETWORK)

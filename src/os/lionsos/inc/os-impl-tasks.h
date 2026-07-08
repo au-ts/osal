@@ -8,8 +8,12 @@
 /*tasks */
 typedef struct
 {
-    microkit_cothread_ref_t cothread;
     osal_id_t osal_id;
+
+    union {
+        microkit_cothread_ref_t cothread;
+        int pd;
+    };
 } OS_impl_task_internal_record_t;
 
 /* Tables where the OS object information is stored */
